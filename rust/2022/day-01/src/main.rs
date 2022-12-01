@@ -24,13 +24,13 @@ fn part_two(file_path: &str) -> i32 {
 
 enum LineType {
     Calories(i32),
-    Blank
+    Blank,
 }
 
 fn read_calories_per_elf(file_path: &str) -> Vec<i32> {
-    let file = std::fs::File::open(file_path)
-        .expect("failed to read file");
-    BufReader::new(file).lines()
+    let file = std::fs::File::open(file_path).expect("failed to read file");
+    BufReader::new(file)
+        .lines()
         .map(|l| l.expect("failed to read line"))
         .map(parse_line)
         .fold(Vec::new(), aggregate_calories)
@@ -46,9 +46,12 @@ fn parse_line(line: String) -> LineType {
 fn aggregate_calories(mut acc: Vec<i32>, next: LineType) -> Vec<i32> {
     match next {
         LineType::Calories(cal) => {
-            let last = acc.pop().unwrap_or(0);
-            acc.push(last + cal);
-        },
+            if let Some(last) = acc.last_mut() {
+                *last += cal;
+            } else {
+                acc.push(cal);
+            }
+        }
         LineType::Blank => acc.push(0),
     };
     acc
